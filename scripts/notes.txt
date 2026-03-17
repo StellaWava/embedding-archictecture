@@ -1,0 +1,17 @@
+The researcher is treating network conditions as the independent experimental variable and measuring 
+how different approximate nearest neighbor (ANN) architectures respond in terms of retrieval performance 
+and energy consumption.
+
+Key ANN algorithmic architectures include:
+Graph-Based Methods i.e. HNSW, NSW 
+Quantization-Based Methods i.e. PQ and ScaNN
+Tree-Based Methods i.e. KD tree, & Annoy (Approximate Nearest Neighbors Oh Yeah) 
+Clustering and Hashing Methods i.e. Inverted File Index (IVF), and Locality-Sensitive Hashing (LSH). 
+
+Libraries include: 
+FAISS, Annoy, ScaNN, ChromeDB 
+
+Notes: 
+- https://www.oracle.com/database/ai-vector-search/similarity-search/
+
+ 
