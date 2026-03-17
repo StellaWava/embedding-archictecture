@@ -1,0 +1,7 @@
+#ignore 
+
+network/
+data/
+logs/
+
+.env/ 
