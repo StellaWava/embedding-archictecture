@@ -33,7 +33,7 @@ def make_drift_queries(q: np.ndarray, alpha: float) -> np.ndarray:
     noise = np.random.randn(*q.shape).astype("float32")
     noise = l2_normalize(noise)
 
-    drifted = q + alpha + noise 
+    drifted = q + alpha*noise  #changed from + for *
     drifted = l2_normalize(drifted.astype("float32"))
     return drifted.astype("float32")
 
