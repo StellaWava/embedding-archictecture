@@ -1,3 +1,10 @@
+"""
+STEP 5 a) (Local Experiment)
+
+Search Index - hnsw
+"""
+
+
 import os
 
 import faiss

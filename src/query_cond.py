@@ -1,4 +1,9 @@
-#creating query conditions for the empirical drift checks
+"""
+STEP 3: (Local experiment)
+
+Creating query conditions for the empirical drift checks
+
+"""
 
 import json
 import os 

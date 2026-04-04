@@ -1,4 +1,7 @@
 """
+
+STEP 6: (Local experiment execute)
+
 It evaluates:
 architecture: hnsw vs ivf
 freshness: fresh, partial, stale

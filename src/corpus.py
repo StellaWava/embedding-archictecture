@@ -1,4 +1,5 @@
 """
+STEP 1 (Local Experiment)
 Preparing corpus embeddings. Using biencoder embedding model 
 BAAI/bge-base-en-v1.5
 """

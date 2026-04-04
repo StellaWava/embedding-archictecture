@@ -1,4 +1,8 @@
-#setting the ground truth similarity search | fresh top-k, no network injections
+"""
+STEP 4: (Local Experiment)
+
+Setting the ground truth similarity search | fresh top-k (100), from the corpus...no network injections
+"""
 import os
 
 import numpy as np

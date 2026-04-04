@@ -1,3 +1,10 @@
+"""
+STEP 5 b) (Local Experiment)
+
+Search Index - ivf
+"""
+
+
 import os
 
 import faiss

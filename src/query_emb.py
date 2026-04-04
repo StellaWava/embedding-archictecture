@@ -1,4 +1,8 @@
-#Building the experiment query embedding
+"""
+STEP 2:  (Local Experiment)
+
+Building the experiment query embedding
+"""
 
 import json
 import os  
