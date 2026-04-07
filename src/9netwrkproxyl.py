@@ -1,3 +1,9 @@
+"""
+Step 9: Network Proxy settings.
+Injecting Latency, jitter, packet loss
+and bandwidth limits. 
+"""
+
 import socket
 import threading
 import time

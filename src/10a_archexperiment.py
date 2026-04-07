@@ -1,4 +1,8 @@
-#this is architectural behaviur experiment
+"""
+Step 11: 
+This is architectural behaviour experiment
+
+"""
 import faiss
 import numpy as np
 from tqdm import tqdm

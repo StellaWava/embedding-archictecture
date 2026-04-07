@@ -79,6 +79,12 @@
 # if __name__ == "__main__":
 #     run()
 
+"""
+STEP 10: Upgrading FAISS calls with RPC calls
+
+
+"""
+
 
 import socket
 import pickle

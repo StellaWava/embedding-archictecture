@@ -1,5 +1,8 @@
-#summarize the fresh local test results
+"""
+STEP 7: Local Experiment
+Summarize the fresh local test results
 
+"""
 import pandas as pd
 
 INPUT_FILE = "results/local_results.csv"

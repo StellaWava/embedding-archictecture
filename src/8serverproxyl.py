@@ -1,3 +1,10 @@
+"""
+Step 8: Network server proxy for local 
+testing. 
+Wrapping FAISS as a simple PRC server. 
+
+"""
+
 import socket
 import pickle
 import faiss
