@@ -3,6 +3,8 @@ Step 11:
 This is architectural behaviour experiment
 
 """
+import csv
+import os
 import faiss
 import numpy as np
 from tqdm import tqdm
@@ -13,13 +15,14 @@ from tqdm import tqdm
 HNSW_INDEX = "data/hnsw.index"
 IVF_INDEX = "data/ivf_flat.index"
 
+#note fresh = partial = stale = same query
 Q_FRESH = "data/queries_fresh.npy"
 Q_PARTIAL = "data/queries_patial.npy"
 Q_STALE = "data/queries_stale.npy"
 
 GT_FILE = "data/gt_top100.npy"
 
-TOPK = 100
+TOPK = 10
 
 # =========================
 # Load data
@@ -145,9 +148,8 @@ def compute_centroid_hit_rate(index, queries, gt):
 #         # ---- IVF routing ----
 #         hit_rate = compute_centroid_hit_rate(ivf, queries, gt)
 #         print(f"\nIVF centroid hit rate: {hit_rate:.4f}")
-import csv
-import os
-OUTPUT_FILE = "results/mechanism_results.csv"
+
+OUTPUT_FILE = "results/mechanism_resultsdt.csv"
 def run():
     ef_values = [16, 32, 64, 128, 256]
     nprobe_values = [1, 4, 8, 16, 32]

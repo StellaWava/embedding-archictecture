@@ -5,7 +5,7 @@ BAAI/bge-base-en-v1.5
 """
 
 """
-Generating Query embeddings 
+Generating embeddings 
 """
 
 import numpy as np

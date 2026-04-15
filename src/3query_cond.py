@@ -22,8 +22,10 @@ METAL_FILE = "data/metadata_drift.json"
 SEED = 42
 
 #drift magnitude in embedding space 
-PARTIAL_ALPHA = 0.15
-STALE_ALPHA = 0.35 
+# PARTIAL_ALPHA = 0.15
+# STALE_ALPHA = 0.35 
+PARTIAL_ALPHA = 0
+STALE_ALPHA = 0
 
 np.random.seed(SEED)
 os.makedirs("data", exist_ok=True)
@@ -48,6 +50,7 @@ queries = l2_normalize(queries)
 queries_fresh = queries.copy()
 queries_partial = make_drift_queries(queries, PARTIAL_ALPHA)
 queries_stale = make_drift_queries(queries, STALE_ALPHA)
+
 
 #save generated queries
 np.save(OUT_FRESH, queries_fresh)

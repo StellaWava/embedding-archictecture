@@ -1,0 +1,167 @@
+
+First - static approach
+# def batched_search(index, queries, topk, batch_size):
+#     all_I = []
+#     latencies_ms = []
+
+#     for start in range(0, queries.shape[0], batch_size):
+#         q = queries[start:start + batch_size]
+#         t0 = time.perf_counter()
+#         _, I = index.search(q, topk)
+#         t1 = time.perf_counter()
+
+#         all_I.append(I)
+#         batch_ms = (t1 - t0) * 1000.0
+#         per_query_ms = batch_ms / q.shape[0]
+#         latencies_ms.extend([per_query_ms] * q.shape[0])
+#     return np.vstack(all_I), np.array(latencies_ms)
+
+
+Then drift with no sublinear impact
+
+a) # def evolving_search(index, q, topk, steps=3):
+#     current_q = q.copy()
+#     cumulative_I = None
+
+#     t_start = time.perf_counter()
+
+#     for step in range(steps):
+#         t_now = time.perf_counter()
+#         dt = t_now - t_start
+
+#         alpha = alpha_from_time(dt)
+
+#         # inject drift based on elapsed time
+#         noise = np.random.randn(*current_q.shape).astype("float32")
+#         noise /= np.linalg.norm(noise, axis=1, keepdims=True)
+
+#         current_q = current_q + alpha * noise
+#         current_q /= np.linalg.norm(current_q, axis=1, keepdims=True)
+
+#         # partial retrieval
+#         _, I = index.search(current_q, topk)
+
+#         cumulative_I = I if cumulative_I is None else cumulative_I
+
+#     return cumulative_I
+
+#####   Corrected
+def batched_search(index, queries, topk, batch_size, steps=3):
+    all_I = []
+    latencies_ms = []
+
+    for start in range(0, queries.shape[0], batch_size):
+        q = queries[start:start + batch_size]
+        current_q = q.copy()
+
+        cumulative_dt = np.zeros(q.shape[0])  # track per-query time
+
+        for step in range(steps):
+            t0 = time.perf_counter()
+            _, I = index.search(current_q, topk)
+            t1 = time.perf_counter()
+
+            batch_ms = (t1 - t0) * 1000.0
+            per_query_ms = batch_ms / q.shape[0]
+
+            # accumulate time exposure
+            cumulative_dt += per_query_ms
+
+            # drift based on accumulated time
+            alpha = alpha_from_time(cumulative_dt)  # vectorized
+
+            noise = np.random.randn(*current_q.shape).astype("float32")
+            noise /= np.linalg.norm(noise, axis=1, keepdims=True)
+
+            current_q = current_q + alpha[:, None] * noise
+            current_q /= np.linalg.norm(current_q, axis=1, keepdims=True)
+
+        all_I.append(I)
+
+        # log final per-query latency
+        latencies_ms.extend(cumulative_dt.tolist())
+
+    return np.vstack(all_I), np.array(latencies_ms)
+
+Step 10: compute and network bandwidth degrading
+- Unusable 
+# import socket
+# import pickle
+# import numpy as np
+# import time
+
+# QUERY_FILES = {
+#     "fresh": "data/queries_fresh.npy",
+#     "partial": "data/queries_patial.npy",
+#     "stale": "data/queries_stale.npy",
+# }
+
+# GT_FILE = "data/gt_top100.npy"
+
+# HOST = "127.0.0.1"
+# PORT = 6000
+
+# BUFFER_SIZE = 4096
+
+
+# def recv_until_eof(sock):
+#     data = b""
+#     while True:
+#         chunk = sock.recv(BUFFER_SIZE)
+#         if not chunk:
+#             break
+#         data += chunk
+#     return data
+
+
+# def send_query(q):
+#     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     try:
+#         sock.connect((HOST, PORT))
+
+#         payload = pickle.dumps(q)
+#         sock.sendall(payload)
+
+#         # Important: signal that request is complete
+#         sock.shutdown(socket.SHUT_WR)
+
+#         response = recv_until_eof(sock)
+#         return pickle.loads(response)
+#     finally:
+#         sock.close()
+
+
+# def recall_at_k(pred, gt, k):
+#     total = 0.0
+#     for i in range(len(pred)):
+#         total += len(set(pred[i][:k]) & set(gt[i][:k])) / k
+#     return total / len(pred)
+
+
+# def run():
+#     gt = np.load(GT_FILE)
+
+#     for freshness, file in QUERY_FILES.items():
+#         queries = np.load(file)
+
+#         results = []
+#         latencies = []
+
+#         for q in queries:
+#             t0 = time.time()
+#             _, I = send_query(q)
+#             t1 = time.time()
+
+#             latencies.append((t1 - t0) * 1000.0)
+#             results.append(I[0])
+
+#         results = np.array(results)
+
+#         r10 = recall_at_k(results, gt, 10)
+#         p95 = np.percentile(latencies, 95)
+
+#         print(f"{freshness} | Recall@10={r10:.4f} | P95 latency={p95:.2f} ms")
+
+
+# if __name__ == "__main__":
+#     run()

@@ -24,6 +24,7 @@ import numpy as np
 CORPUS_FILE = "data/corpus.npy"
 GT_FILE = "data/gt_top100.npy"
 
+#note fresh is same as partial, same as stale in this setting. 
 QUERY_FILES = {
     "fresh": "data/queries_fresh.npy",
     "partial": "data/queries_patial.npy",
@@ -45,21 +46,74 @@ def recall_at_k(pred: np.ndarray, gt: np.ndarray, k: int) -> float:
         total += len(set(pred_k[i].tolist()) & set(gt_k[i].tolist())) / float(k)
     return total / pred_k.shape[0]
 
+#introduce dynamic search evolution
+def alpha_from_time(dt, k=0.05):
+    """
+    Sublinear drift magnitude as a function of time.
+    dt: shape (B,)
+    """
+    return k * np.sqrt(dt)   # sublinear
 
-def batched_search(index, queries, topk, batch_size):
+import numpy as np
+import time
+
+
+def alpha_from_time(dt, k=0.5):
+    """
+    Sublinear drift magnitude as a function of time.
+    dt: shape (B,)
+    """
+    return k * np.sqrt(dt)
+
+
+def batched_search(index, queries, topk, batch_size, steps=3):
     all_I = []
     latencies_ms = []
 
     for start in range(0, queries.shape[0], batch_size):
         q = queries[start:start + batch_size]
-        t0 = time.perf_counter()
-        _, I = index.search(q, topk)
-        t1 = time.perf_counter()
+        current_q = q.copy()
+
+        B, D = current_q.shape
+
+        # per-query accumulated time
+        cumulative_dt = np.zeros(B, dtype="float32")
+
+        # track previous alpha for incremental drift
+        prev_alpha = np.zeros(B, dtype="float32")
+
+        for step in range(steps):
+            # --- ANN search ---
+            t0 = time.perf_counter()
+            _, I = index.search(current_q, topk)
+            t1 = time.perf_counter()
+
+            batch_ms = (t1 - t0) * 1000.0
+            per_query_ms = batch_ms / B
+
+            # --- accumulate time exposure ---
+            cumulative_dt += per_query_ms
+
+            # --- compute sublinear drift ---
+            alpha = alpha_from_time(cumulative_dt)        # shape (B,)
+            delta_alpha = alpha - prev_alpha              # incremental drift
+
+            # --- generate normalized noise ---
+            noise = np.random.randn(B, D).astype("float32")
+            noise /= np.linalg.norm(noise, axis=1, keepdims=True)
+
+            # --- apply incremental drift ---
+            current_q = current_q + delta_alpha[:, None] * noise
+
+            # re-normalize to stay on unit sphere
+            current_q /= np.linalg.norm(current_q, axis=1, keepdims=True)
+
+            prev_alpha = alpha
 
         all_I.append(I)
-        batch_ms = (t1 - t0) * 1000.0
-        per_query_ms = batch_ms / q.shape[0]
-        latencies_ms.extend([per_query_ms] * q.shape[0])
+
+        # final per-query "time exposure" (your effective delay)
+        latencies_ms.extend(cumulative_dt.tolist())
 
     return np.vstack(all_I), np.array(latencies_ms)
 
@@ -69,7 +123,7 @@ def main():
     parser.add_argument("--arch", choices=["hnsw", "ivf"], required=True)
     parser.add_argument("--topk", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--output", type=str, default="results/local_results.csv")
+    parser.add_argument("--output", type=str, default="results/local_resultsdt.csv")
     args = parser.parse_args()
 
     os.makedirs("results", exist_ok=True)

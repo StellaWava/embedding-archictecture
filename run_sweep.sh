@@ -6,14 +6,14 @@ do
   do
     for bw in 1000 100 10
     do
-      python3 run_expl.py \
+      python3 src/10_run_expl.py \
         --latency $latency \
         --jitter 5 \
         --loss $loss \
         --bandwidth $bw \
         --arch hnsw
 
-      python3 run_expl.py \
+      python3 src/10_run_expl.py \
         --latency $latency \
         --jitter 5 \
         --loss $loss \
